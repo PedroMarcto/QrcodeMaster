@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { BackHandler } from 'react-native';
+import { View, Text, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { CameraView, CameraType, Camera } from 'expo-camera';
 import { useGame } from '../context/GameContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { useNavigation } from '@react-navigation/native';
 
 const colorPoints = {
   verde: 1,
@@ -21,10 +23,23 @@ const validQRCodes = [
 type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
 export default function GameScreen({ navigation }: Props) {
-  const { setResults, results, totalScore, player, timeRemaining, status } = useGame();
+  const { setResults, results, player, timeRemaining, status, teams } = useGame();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [cameraRef, setCameraRef] = useState<any>(null);
+  const nav = useNavigation();
+
+  const teamKey = player?.team === 'Azul' ? 'blue' : 'red';
+  const teamScore = teams[teamKey]?.score ?? 0;
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => backHandler.remove();
+  }, []);
+
+  React.useLayoutEffect(() => {
+    nav.setOptions({ headerShown: false });
+  }, [nav]);
 
   useEffect(() => {
     (async () => {
@@ -88,16 +103,18 @@ export default function GameScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Escaneie o QR Code</Text>
-        <Text style={styles.timer}>Tempo Restante: {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>
+        <View style={styles.timerBox}>
+          <Text style={styles.timerLabel}>Tempo Restante:</Text>
+          <Text style={styles.timerValue}>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>
+        </View>
         <Text style={styles.qrCount}>QR Codes Escaneados: {results.length} / 3</Text>
         <View style={styles.playerInfo}>
           <Text style={styles.playerName}>{player?.name}</Text>
           <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }]}>Equipe {player?.team}</Text>
         </View>
         <View style={styles.scoreInfo}>
-          <Text style={styles.scoreLabel}>Pontuação:</Text>
-          <Text style={styles.score}>{totalScore}</Text>
+          <Text style={styles.scoreLabel}>Pontuação Da Equipe:</Text>
+          <Text style={styles.score}>{teamScore}</Text>
         </View>
       </View>
 
@@ -107,47 +124,114 @@ export default function GameScreen({ navigation }: Props) {
           style={StyleSheet.absoluteFillObject}
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          onBarcodeScanned={scanned || status === 'finished' ? undefined : handleBarCodeScanned}
         />
         <View style={styles.overlay}>
           <View style={styles.scanFrame} />
           <Text style={styles.scanInstruction}>
-            {scanned ? 'QR Code detectado!' : 'Posicione o QR Code dentro do quadro'}
+            {status === 'finished' ? 'A partida foi encerrada!' : scanned ? 'QR Code detectado!' : 'Posicione o QR Code dentro do quadro'}
           </Text>
         </View>
       </View>
 
-      <View style={styles.pointsInfo}>
-        <Text style={styles.pointsTitle}>Sistema de Pontos:</Text>
-        <View style={styles.pointsRow}>
-          <Text style={styles.pointsItem}>🟢 Verde: 1 ponto</Text>
-          <Text style={styles.pointsItem}>🟠 Laranja: 3 pontos</Text>
-          <Text style={styles.pointsItem}>🔴 Vermelho: 5 pontos</Text>
-        </View>
-      </View>
+      <View style={{
+  position: 'absolute',
+  bottom: 32,
+  left: 0,
+  right: 0,
+  backgroundColor: '#fff',
+  borderRadius: 16,
+  padding: 20,
+  marginHorizontal: 16,
+  elevation: 4,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.15,
+  shadowRadius: 8,
+  alignSelf: 'center',
+}}>
+  <Text style={{ fontWeight: 'bold', marginBottom: 12, fontSize: 18 }}>Sistema de Pontos:</Text>
+  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'green', marginRight: 10 }} />
+    <Text style={{ fontSize: 16 }}>Verde: 1 ponto</Text>
+  </View>
+  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'orange', marginRight: 10 }} />
+    <Text style={{ fontSize: 16 }}>Laranja: 3 pontos</Text>
+  </View>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'red', marginRight: 10 }} />
+    <Text style={{ fontSize: 16 }}>Vermelho: 5 pontos</Text>
+  </View>
+</View>
 
       <View style={styles.buttonContainer}>
         {scanned && (
           <Button title="Escanear novamente" onPress={() => setScanned(false)} />
         )}
-        {status === 'finished' && (
-          <Button
-            title="Ver Resultados"
-            onPress={() => navigation.navigate('Results')}
-            color="#4CAF50"
-          />
-        )}
       </View>
+
+      {/* Modal flutuante quando partida encerrada */}
+      {status === 'finished' && (
+        <View style={styles.modalOverlay}>
+            <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 32, alignItems: 'center', width: 300, elevation: 6 }}>
+                {/* Ícone de relógio animado */}
+                <View style={{ marginBottom: 10 }}>
+                  <Text style={{ fontSize: 44, textAlign: 'center' }}>⏰</Text>
+                </View>
+                <Text style={{ fontSize: 23, fontWeight: 'bold', color: '#d32f2f', marginBottom: 16, textAlign: 'center' }}>
+                  PARTIDA ENCERRADA
+                </Text>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#43a047', borderRadius: 8, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8, elevation: 2 }}
+                  onPress={() => navigation.navigate('Results')}
+                  activeOpacity={0.85}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, letterSpacing: 1 }}>VER RESULTADOS</Text>
+                </TouchableOpacity>
+              </View>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  timer: {
+  timerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fffbe6',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#FFD600',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    marginBottom: 12,
+    alignSelf: 'center',
+    elevation: 2,
+    shadowColor: '#FFD600',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  timerLabel: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginRight: 10,
+  },
+  timerValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFD600',
+    letterSpacing: 2,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#FFD600',
   },
   qrCount: {
     fontSize: 16,
@@ -159,6 +243,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     padding: 16,
+    paddingTop: 125, // espaçamento extra no topo
   },
   header: {
     alignItems: 'center',
@@ -272,5 +357,47 @@ const styles = StyleSheet.create({
   buttonContainer: {
     gap: 12,
     width: '100%',
+  },
+  finishedBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffeaea',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e53935',
+  },
+  finishedIcon: {
+    fontSize: 32,
+    color: '#e53935',
+    marginBottom: 4,
+  },
+  finishedText: {
+    textAlign: 'center',
+    color: '#e53935',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  cameraBlock: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    zIndex: 20,
+    borderRadius: 16,
+  },
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    width: '80%',
+    elevation: 8,
   },
 });

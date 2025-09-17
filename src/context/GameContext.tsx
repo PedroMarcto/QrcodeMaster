@@ -49,18 +49,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [teams, setTeams] = useState<{ blue: { players: string[]; score: number }; red: { players: string[]; score: number } }>({ blue: { players: [], score: 0 }, red: { players: [], score: 0 } });
   const [scannedQRCodes, setScannedQRCodes] = useState<string[]>([]);
 
-  // Timer local para atualizar timeRemaining na tela do mobile
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (status === 'active' && timeRemaining > 0) {
-      timer = setInterval(() => {
-        setTimeRemaining(prev => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [status, timeRemaining]);
+
 
 
   // Carregar dados do Firestore e escutar atualizações em tempo real
@@ -70,9 +59,22 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         // Atualiza contexto local com dados do Firestore
-    if (data.player) setPlayerState(data.player);
-    if (data.results) setResultsState(data.results);
-    if (data.status) setStatus(data.status);
+        if (data.player) setPlayerState(data.player);
+        if (data.results) setResultsState(data.results);
+        if (data.status) setStatus(data.status);
+        if (typeof data.timeRemaining === 'number') setTimeRemaining(data.timeRemaining);
+        if (data.teams) {
+          setTeams({
+            blue: {
+              players: Array.isArray(data.teams.blue?.players) ? data.teams.blue.players : [],
+              score: typeof data.teams.blue?.score === 'number' ? data.teams.blue.score : 0
+            },
+            red: {
+              players: Array.isArray(data.teams.red?.players) ? data.teams.red.players : [],
+              score: typeof data.teams.red?.score === 'number' ? data.teams.red.score : 0
+            }
+          });
+        }
       }
     });
     // Carrega dados locais para fallback/offline

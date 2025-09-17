@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useGame } from '../context/GameContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -7,7 +7,10 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 type Props = NativeStackScreenProps<RootStackParamList, 'Results'>;
 
 export default function ResultsScreen({ navigation }: Props) {
-  const { player, results, totalScore, clearData, setPlayer } = useGame();
+  React.useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+  const { player, results, teams, clearData, setPlayer } = useGame();
   
   const getColorEmoji = (color: string) => {
     switch (color) {
@@ -23,6 +26,9 @@ export default function ResultsScreen({ navigation }: Props) {
   navigation.navigate('WaitingRoom');
   };
 
+  const teamKey = player?.team === 'Azul' ? 'blue' : 'red';
+  const teamScore = teams[teamKey]?.score ?? 0;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🏆 Resultados</Text>
@@ -35,8 +41,8 @@ export default function ResultsScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.scoreContainer}>
-        <Text style={styles.scoreLabel}>Pontuação Total</Text>
-        <Text style={styles.totalScore}>{totalScore}</Text>
+        <Text style={styles.scoreLabel}>Pontuação da Equipe</Text>
+        <Text style={styles.totalScore}>{teamScore}</Text>
         <Text style={styles.scoreSubtext}>pontos</Text>
       </View>
 
@@ -60,21 +66,32 @@ export default function ResultsScreen({ navigation }: Props) {
         )}
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Jogar Novamente"
-          onPress={handlePlayAgain}
-          color="#4CAF50"
-        />
-        <Button
-          title="Sair"
-          color="#e53935"
-          onPress={async () => {
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.playAgainBtn} onPress={handlePlayAgain} activeOpacity={0.85}>
+          <Text style={styles.playAgainText}>JOGAR NOVAMENTE</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.exitBtn} onPress={async () => {
+          if (!player) return;
+          const teamKey = player.team === 'Azul' ? 'blue' : 'red';
+          try {
+            const { doc, getDoc, setDoc } = await import('firebase/firestore');
+            const gameDocRef = doc(require('../config/firebase').db, 'game', 'current');
+            const docSnap = await getDoc(gameDocRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              const teamsData = { ...data.teams };
+              teamsData[teamKey].players = teamsData[teamKey].players.filter((n: string) => n !== player.name);
+              await setDoc(gameDocRef, { teams: teamsData }, { merge: true });
+            }
             await setPlayer(null);
             await clearData();
-            navigation.navigate('Register');
-          }}
-        />
+            navigation.replace('Register');
+          } catch (err) {
+            console.error('Erro ao sair:', err);
+          }
+        }} activeOpacity={0.85}>
+          <Text style={styles.exitText}>SAIR</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -82,6 +99,7 @@ export default function ResultsScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: 90,
     flex: 1,
     backgroundColor: '#f5f5f5',
     padding: 16,
@@ -187,7 +205,40 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 28,
   },
-  buttonContainer: {
-    marginTop: 16,
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 5,
+    marginBottom: 25,
+    gap: 12,
+  },
+  playAgainBtn: {
+    flex: 2,
+    backgroundColor: '#4CAF50',
+    borderRadius: 25,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  playAgainText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+  exitBtn: {
+    flex: 1,
+    backgroundColor: '#e53935',
+    borderRadius: 25,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  exitText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
   },
 });

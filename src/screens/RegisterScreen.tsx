@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BackHandler } from 'react-native';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useGame } from '../context/GameContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,9 +10,17 @@ const teams = ['Azul', 'Vermelha'] as const;
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
+  React.useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
   const [name, setName] = useState('');
   const [team, setTeam] = useState<typeof teams[number] | null>(null);
   const { setPlayer } = useGame();
+
+    React.useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => backHandler.remove();
+  }, []);
 
   const handleRegister = () => {
     if (!name.trim()) {
@@ -108,6 +117,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
     padding: 20,
+    paddingTop: 40,
   },
   header: {
     alignItems: 'center',
