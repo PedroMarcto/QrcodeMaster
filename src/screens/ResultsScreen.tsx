@@ -11,6 +11,9 @@ export default function ResultsScreen({ navigation }: Props) {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
   const { player, results, teams, clearData, setPlayer } = useGame();
+
+  // Filtra os QR Codes escaneados pela equipe do jogador
+  const teamResults = results.filter(result => result.team === player?.team);
   
   const getColorEmoji = (color: string) => {
     switch (color) {
@@ -31,13 +34,15 @@ export default function ResultsScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🏆 Resultados</Text>
+      <Text style={styles.title}>Resumo da partida</Text>
       
       <View style={styles.playerInfo}>
-        <Text style={styles.playerName}>{player?.name}</Text>
-        <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }]}>
-          Equipe {player?.team}
-        </Text>
+        <View style={styles.playerRow}>
+          <Text style={styles.playerLabel}>Jogador: <Text style={styles.playerName}>{player?.name}</Text></Text>
+          <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }, { backgroundColor: player?.team === 'Azul' ? '#2196f340' : '#e5393540', paddingHorizontal: 15, paddingVertical: 4, paddingBottom: 7, borderRadius: 20,}]}>
+            Equipe {player?.team}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.scoreContainer}>
@@ -46,12 +51,14 @@ export default function ResultsScreen({ navigation }: Props) {
         <Text style={styles.scoreSubtext}>pontos</Text>
       </View>
 
+      <Text style={styles.winnerText}>Vá ao estande para saber o Ganhador</Text>
+
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.resultsTitle}>QR Codes Escaneados:</Text>
-        {results.length === 0 ? (
-          <Text style={styles.noResults}>Nenhum QR Code foi escaneado</Text>
+        {teamResults.length === 0 ? (
+          <Text style={styles.noResults}>Nenhum QR Code foi escaneado pela equipe</Text>
         ) : (
-          results.map((result, index) => (
+          teamResults.map((result, index) => (
             <View key={index} style={styles.resultItem}>
               <View style={styles.resultHeader}>
                 <Text style={styles.resultEmoji}>{getColorEmoji(result.color)}</Text>
@@ -98,28 +105,51 @@ export default function ResultsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  playerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
   container: {
-    paddingTop: 90,
+    paddingTop: 15,
     flex: 1,
     backgroundColor: '#f5f5f5',
     padding: 16,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 35,
     textAlign: 'center',
-    marginBottom: 24,
-    color: '#333',
+    marginBottom: 35,
+    color: '#2a9b13ff', // azul destaque
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    textShadowRadius: 3,
+    //backgroundColor: '#00ff8831',
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#008807ff',
   },
   playerInfo: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 2,
   },
   playerName: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '100',
     color: '#333',
     marginBottom: 4,
+  },
+  playerLabel: {
+    fontSize: 21,
+    fontWeight: 'bold',
+    //backgroundColor: '#dadadaff',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 5,
   },
   teamName: {
     fontSize: 18,
@@ -130,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -210,7 +240,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 5,
-    marginBottom: 25,
+    marginBottom: 5,
     gap: 12,
   },
   playAgainBtn: {
@@ -240,5 +270,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     letterSpacing: 1,
+  },
+  winnerText: {
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 12,
   },
 });

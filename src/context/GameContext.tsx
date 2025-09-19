@@ -15,6 +15,8 @@ export type QRResult = {
   color: 'verde' | 'laranja' | 'vermelho';
   points: number;
   date: string;
+  id: string; // uuid do QR Code
+  team: string; // equipe que escaneou
 };
 
 export type GameState = {
@@ -66,12 +68,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         if (data.teams) {
           setTeams({
             blue: {
-              players: Array.isArray(data.teams.blue?.players) ? data.teams.blue.players : [],
-              score: typeof data.teams.blue?.score === 'number' ? data.teams.blue.score : 0
+              players: Array.isArray(data.teams?.blue?.players) ? data.teams.blue.players : [],
+              score: typeof data.teams?.blue?.score === 'number' ? data.teams.blue.score : 0
             },
             red: {
-              players: Array.isArray(data.teams.red?.players) ? data.teams.red.players : [],
-              score: typeof data.teams.red?.score === 'number' ? data.teams.red.score : 0
+              players: Array.isArray(data.teams?.red?.players) ? data.teams.red.players : [],
+              score: typeof data.teams?.red?.score === 'number' ? data.teams.red.score : 0
             }
           });
         }
@@ -137,7 +139,30 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       setResultsState(newResults);
       // Salva no Firestore
       const gameDocRef = doc(db, 'game', 'current');
-      await setDoc(gameDocRef, { results: newResults }, { merge: true });
+      // Extrai os ids dos QR Codes escaneados
+      const scannedIds = newResults.map(result => result.id);
+
+      // Calcular pontuação da equipe do jogador
+  const teamKey: 'blue' | 'red' = player?.team === 'Azul' ? 'blue' : 'red';
+      // Filtra só os QR Codes do jogador atual (se necessário)
+      const teamResults = newResults; // Se quiser filtrar por jogador, ajuste aqui
+      const teamScore = teamResults.reduce((sum, result) => sum + result.points, 0);
+
+      // Atualiza o score da equipe no Firestore
+      await setDoc(gameDocRef, {
+        results: newResults,
+        scannedQRCodes: scannedIds,
+        teams: {
+          [teamKey]: {
+            // Mantém os jogadores e atualiza o score
+            players: teams[teamKey]?.players || [],
+            score: teamScore
+          },
+          // Mantém a outra equipe sem alteração
+          [teamKey === 'blue' ? 'red' : 'blue']: teams[teamKey === 'blue' ? 'red' : 'blue']
+        }
+      }, { merge: true });
+
       // Salva local
       await AsyncStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(newResults));
     } catch (error) {

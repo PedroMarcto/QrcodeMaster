@@ -93,6 +93,12 @@ const WaitingRoomScreen = () => {
         </View>
       )}
       <Text style={styles.status}>Aguardando início do jogo...</Text>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          © 2025 Pedro Otávio R.M
+        </Text>
+      </View>
     </View>
   );
 };
@@ -188,7 +194,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   leaveButtonTop: {
-    marginTop: 30,
     position: 'absolute',
     top: 32,
     right: 24,
@@ -203,6 +208,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
+  },
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fff',
+    paddingVertical: 18,
+    borderTopWidth: 1,
+    borderTopColor: '#9c9c9cff',
+    alignItems: 'center',
+    width: 411,
+    zIndex: 10,
+  },
+  footerText: {
+    fontSize: 15,
+    color: '#00000067',
+    textAlign: 'center',
+    lineHeight: 22,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
 });
 

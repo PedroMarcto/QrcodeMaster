@@ -47,7 +47,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>👤 Seu Nome</Text>
+          <Text style={styles.label}>Seu Nome</Text>
           <TextInput
             style={[styles.input, name.trim() ? styles.inputFilled : null]}
             placeholder="Digite seu nome aqui"
@@ -60,7 +60,7 @@ export default function RegisterScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.teamContainer}>
-          <Text style={styles.label}>🏆 Escolha sua Equipe</Text>
+          <Text style={styles.label}>Escolha sua Equipe</Text>
           <View style={styles.teams}>
             {teams.map((t) => (
               <TouchableOpacity
@@ -98,14 +98,14 @@ export default function RegisterScreen({ navigation }: Props) {
             styles.enterButtonText,
             (!name.trim() || !team) && styles.enterButtonTextDisabled
           ]}>
-            🚀 Entrar no Jogo
+            Jogar
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          💡 Dica: Procure por QR codes verdes (1pt), laranjas (3pts) e vermelhos (5pts)
+          © 2025 Pedro Otávio R.M
         </Text>
       </View>
     </View>
@@ -236,13 +236,24 @@ const styles = StyleSheet.create({
     color: '#7f8c8d',
   },
   footer: {
-    marginTop: 20,
-    paddingHorizontal: 10,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fff',
+    paddingVertical: 18,
+    borderTopWidth: 1,
+    borderTopColor: '#9c9c9cff',
+    alignItems: 'center',
+    width: 411,
+    zIndex: 10,
   },
   footerText: {
-    fontSize: 14,
-    color: '#7f8c8d',
+    fontSize: 15,
+    color: '#00000067',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
 });

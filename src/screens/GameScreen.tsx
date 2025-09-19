@@ -14,11 +14,8 @@ const colorPoints = {
 };
 
 const GAME_QR_PREFIX = 'GameQrcodeFach:';
-const validQRCodes = [
-  `${GAME_QR_PREFIX}verde`,
-  `${GAME_QR_PREFIX}laranja`,
-  `${GAME_QR_PREFIX}vermelho`,
-];
+// Aceita formato GameQrcodeFach:cor:uuid
+const QR_REGEX = /^GameQrcodeFach:(verde|laranja|vermelho):([0-9a-fA-F\-]{36})$/;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
@@ -52,7 +49,9 @@ export default function GameScreen({ navigation }: Props) {
     if (scanned) return;
     setScanned(true);
 
-    if (!validQRCodes.includes(data)) {
+    // Validação do formato
+    const match = QR_REGEX.exec(data);
+    if (!match) {
       Alert.alert(
         'QR Code inválido',
         'Este QR Code não faz parte do jogo GameQrcodeFach.\n\nProcure pelos QR codes oficiais do evento!',
@@ -61,20 +60,24 @@ export default function GameScreen({ navigation }: Props) {
       return;
     }
 
-    const color = data.replace(GAME_QR_PREFIX, '') as 'verde' | 'laranja' | 'vermelho';
-    const alreadyScanned = results.some(result => result.color === color);
+    const color = match[1] as 'verde' | 'laranja' | 'vermelho';
+    const uuid = match[2];
+    // Bloqueia escaneamento repetido do mesmo QR (uuid)
+    const alreadyScanned = results.some(result => result.id === uuid);
     if (alreadyScanned) {
       Alert.alert(
         'QR Code já escaneado!',
-        `Você já escaneou o QR Code ${color.toUpperCase()}.\n\nProcure por outros QR codes para ganhar mais pontos!`,
+        `Este QR Code já foi escaneado!\n\nProcure por outros QR codes para ganhar mais pontos!`,
         [{ text: 'OK', onPress: () => setScanned(false) }]
       );
       return;
     }
 
-    const points = colorPoints[color] || 0;
-    const newResult = { color, points, date: new Date().toISOString() };
-    setResults([...results, newResult]);
+  const points = colorPoints[color] || 0;
+  // Adiciona o campo 'team' para identificar a equipe que escaneou
+  const team = player?.team || '';
+  const newResult = { color, points, date: new Date().toISOString(), id: uuid, team };
+  setResults([...results, newResult]);
 
     Alert.alert(
       '🎉 QR Code válido!',
@@ -107,7 +110,7 @@ export default function GameScreen({ navigation }: Props) {
           <Text style={styles.timerLabel}>Tempo Restante:</Text>
           <Text style={styles.timerValue}>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>
         </View>
-        <Text style={styles.qrCount}>QR Codes Escaneados: {results.length} / 3</Text>
+        <Text style={styles.qrCount}>QR Codes Escaneados: {results.length}</Text>
         <View style={styles.playerInfo}>
           <Text style={styles.playerName}>{player?.name}</Text>
           <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }]}>Equipe {player?.team}</Text>
@@ -187,7 +190,7 @@ export default function GameScreen({ navigation }: Props) {
                   onPress={() => navigation.navigate('Results')}
                   activeOpacity={0.85}
                 >
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, letterSpacing: 1 }}>VER RESULTADOS</Text>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, letterSpacing: 1 }}>VER RESUMO</Text>
                 </TouchableOpacity>
               </View>
         </View>
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     padding: 16,
-    paddingTop: 125, // espaçamento extra no topo
+    paddingTop: 20, // espaçamento extra no topo
   },
   header: {
     alignItems: 'center',
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
   },
   scannerBox: {
     width: '100%',
-    height: 300,
+    height: 360,
     overflow: 'hidden',
     borderRadius: 16,
     marginBottom: 16,
