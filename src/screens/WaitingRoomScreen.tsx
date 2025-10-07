@@ -95,8 +95,10 @@ const WaitingRoomScreen = () => {
       <Text style={styles.status}>Aguardando início do jogo...</Text>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          © 2025 Pedro Otávio R.M
+        <Text style={styles.footerTitle}>QrMaster Beta</Text>
+        <Text style={styles.footerSubtitle}>Desenvolvido para Fatech 2025</Text>
+        <Text style={styles.footerAuthor}>
+          Copyright 2025 Pedro Otávio Rodrigues Marcato
         </Text>
       </View>
     </View>
@@ -215,20 +217,37 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#fff',
-    paddingVertical: 18,
+    paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#9c9c9cff',
+    borderTopColor: '#e0e0e0',
     alignItems: 'center',
     width: 411,
     zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  footerText: {
-    fontSize: 15,
-    color: '#00000067',
+  footerTitle: {
+    fontSize: 14,
+    color: '#27ae60',
     textAlign: 'center',
-    lineHeight: 22,
     fontWeight: 'bold',
     letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  footerSubtitle: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  footerAuthor: {
+    fontSize: 11,
+    color: '#95a5a6',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });
 
