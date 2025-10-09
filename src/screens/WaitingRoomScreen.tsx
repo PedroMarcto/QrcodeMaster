@@ -100,7 +100,7 @@ const WaitingRoomScreen = () => {
         )}
         <Text style={styles.status}>Aguardando início do jogo...</Text>
       </View>      <View style={styles.footer}>
-        <Text style={styles.footerTitle}>QrMaster Beta</Text>
+        <Text style={styles.footerTitle}>QrcodeMaster Beta</Text>
         <Text style={styles.footerSubtitle}>Desenvolvido para Fatech 2025</Text>
         <Text style={styles.footerAuthor}>
           Copyright 2025 Pedro Otávio Rodrigues Marcato
