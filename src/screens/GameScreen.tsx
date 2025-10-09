@@ -20,7 +20,7 @@ const QR_REGEX = /^GameQrcodeFach:(verde|laranja|vermelho):([0-9a-fA-F\-]{36})$/
 type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
 export default function GameScreen({ navigation }: Props) {
-  const { setResults, results, player, timeRemaining, status, teams } = useGame();
+  const { setResults, results, player, timeRemaining, status, teams, isQRCodeScannedByTeam } = useGame();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [cameraRef, setCameraRef] = useState<any>(null);
@@ -62,22 +62,22 @@ export default function GameScreen({ navigation }: Props) {
 
     const color = match[1] as 'verde' | 'laranja' | 'vermelho';
     const uuid = match[2];
-    // Bloqueia escaneamento repetido do mesmo QR (uuid)
-    const alreadyScanned = results.some(result => result.id === uuid);
-    if (alreadyScanned) {
+    
+    // Verifica se ESTA EQUIPE já escaneou este QR code
+    if (player && isQRCodeScannedByTeam(uuid, player.team)) {
       Alert.alert(
         'QR Code já escaneado!',
-        `Este QR Code já foi escaneado!\n\nProcure por outros QR codes para ganhar mais pontos!`,
+        `Sua equipe já escaneou este QR Code!\n\nProcure por outros QR codes para ganhar mais pontos!`,
         [{ text: 'OK', onPress: () => setScanned(false) }]
       );
       return;
     }
 
-  const points = colorPoints[color] || 0;
-  // Adiciona o campo 'team' para identificar a equipe que escaneou
-  const team = player?.team || '';
-  const newResult = { color, points, date: new Date().toISOString(), id: uuid, team };
-  setResults([...results, newResult]);
+    const points = colorPoints[color] || 0;
+    // Salva com 'blue' ou 'red' para consistência no Firebase
+    const teamKey = player?.team === 'Azul' ? 'blue' : 'red';
+    const newResult = { color, points, date: new Date().toISOString(), id: uuid, team: teamKey };
+    setResults([...results, newResult]);
 
     Alert.alert(
       '🎉 QR Code válido!',

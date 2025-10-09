@@ -1,6 +1,6 @@
 import React from 'react';
 import { BackHandler } from 'react-native';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -62,39 +62,44 @@ const WaitingRoomScreen = () => {
       <TouchableOpacity style={styles.leaveButtonTop} onPress={handleLeave}>
         <Text style={styles.leaveButtonText}>Sair</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Sala de Espera</Text>
-      <Text style={styles.subtitle}>Bem-vindo, {player?.name || 'Jogador'}!</Text>
-      {teams && (
-        <View style={styles.teamsRow}>
-          {(['blue', 'red'] as const).map((teamName) => {
-            const teamData = teams[teamName as 'blue' | 'red'];
-            const teamColor = teamName === 'blue' ? '#2563eb' : '#dc2626';
-            const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
-            return (
-              <View key={teamName} style={styles.teamColumn}>
-                <Text style={[styles.teamTitle, { color: teamColor }]}> 
-                  {teamLabel}
-                </Text>
-                <View style={styles.playersBox}>
-                  {Array.isArray(teamData?.players) && teamData.players.length > 0 ? (
-                    teamData.players.map((playerName: string, idx: number) => (
-                      <View key={idx} style={styles.playerRow}>
-                        <View style={[styles.playerDot, { backgroundColor: teamColor }]} />
-                        <Text style={styles.playerName}>{playerName}</Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text style={styles.noPlayer}>Nenhum jogador.</Text>
-                  )}
+      <View style={styles.contentContainer}>
+        <Image 
+          source={require('../../assets/splash-icon.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Sala de Espera</Text>
+        <Text style={styles.subtitle}>Bem-vindo, {player?.name || 'Jogador'}!</Text>
+        {teams && (
+          <View style={styles.teamsRow}>
+            {(['blue', 'red'] as const).map((teamName) => {
+              const teamData = teams[teamName as 'blue' | 'red'];
+              const teamColor = teamName === 'blue' ? '#2563eb' : '#dc2626';
+              const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
+              return (
+                <View key={teamName} style={styles.teamColumn}>
+                  <Text style={[styles.teamTitle, { color: teamColor }]}> 
+                    {teamLabel}
+                  </Text>
+                  <View style={styles.playersBox}>
+                    {Array.isArray(teamData?.players) && teamData.players.length > 0 ? (
+                      teamData.players.map((playerName: string, idx: number) => (
+                        <View key={idx} style={styles.playerRow}>
+                          <View style={[styles.playerDot, { backgroundColor: teamColor }]} />
+                          <Text style={styles.playerName}>{playerName}</Text>
+                        </View>
+                      ))
+                    ) : (
+                      <Text style={styles.noPlayer}>Nenhum jogador.</Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            );
-          })}
-        </View>
-      )}
-      <Text style={styles.status}>Aguardando início do jogo...</Text>
-
-      <View style={styles.footer}>
+              );
+            })}
+          </View>
+        )}
+        <Text style={styles.status}>Aguardando início do jogo...</Text>
+      </View>      <View style={styles.footer}>
         <Text style={styles.footerTitle}>QrMaster Beta</Text>
         <Text style={styles.footerSubtitle}>Desenvolvido para Fatech 2025</Text>
         <Text style={styles.footerAuthor}>
@@ -128,10 +133,19 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#f5f5f5',
     padding: 16,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 80,
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,

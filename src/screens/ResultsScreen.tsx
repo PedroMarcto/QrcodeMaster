@@ -12,8 +12,11 @@ export default function ResultsScreen({ navigation }: Props) {
   }, [navigation]);
   const { player, results, teams, clearData, setPlayer } = useGame();
 
+  // Converte o nome da equipe para o formato usado no Firebase
+  const teamKey = player?.team === 'Azul' ? 'blue' : 'red';
+  
   // Filtra os QR Codes escaneados pela equipe do jogador
-  const teamResults = results.filter(result => result.team === player?.team);
+  const teamResults = results.filter(result => result.team === teamKey);
   
   const getColorEmoji = (color: string) => {
     switch (color) {
@@ -24,12 +27,6 @@ export default function ResultsScreen({ navigation }: Props) {
     }
   };
 
-  const handlePlayAgain = async () => {
-  await clearData();
-  navigation.navigate('WaitingRoom');
-  };
-
-  const teamKey = player?.team === 'Azul' ? 'blue' : 'red';
   const teamScore = teams[teamKey]?.score ?? 0;
 
   return (
@@ -73,33 +70,28 @@ export default function ResultsScreen({ navigation }: Props) {
         )}
       </ScrollView>
 
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.playAgainBtn} onPress={handlePlayAgain} activeOpacity={0.85}>
-          <Text style={styles.playAgainText}>JOGAR NOVAMENTE</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.exitBtn} onPress={async () => {
-          if (!player) return;
-          const teamKey = player.team === 'Azul' ? 'blue' : 'red';
-          try {
-            const { doc, getDoc, setDoc } = await import('firebase/firestore');
-            const gameDocRef = doc(require('../config/firebase').db, 'game', 'current');
-            const docSnap = await getDoc(gameDocRef);
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              const teamsData = { ...data.teams };
-              teamsData[teamKey].players = teamsData[teamKey].players.filter((n: string) => n !== player.name);
-              await setDoc(gameDocRef, { teams: teamsData }, { merge: true });
-            }
-            await setPlayer(null);
-            await clearData();
-            navigation.replace('Register');
-          } catch (err) {
-            console.error('Erro ao sair:', err);
+      <TouchableOpacity style={styles.exitBtn} onPress={async () => {
+        if (!player) return;
+        const teamKey = player.team === 'Azul' ? 'blue' : 'red';
+        try {
+          const { doc, getDoc, setDoc } = await import('firebase/firestore');
+          const gameDocRef = doc(require('../config/firebase').db, 'game', 'current');
+          const docSnap = await getDoc(gameDocRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const teamsData = { ...data.teams };
+            teamsData[teamKey].players = teamsData[teamKey].players.filter((n: string) => n !== player.name);
+            await setDoc(gameDocRef, { teams: teamsData }, { merge: true });
           }
-        }} activeOpacity={0.85}>
-          <Text style={styles.exitText}>SAIR</Text>
-        </TouchableOpacity>
-      </View>
+          // Apenas limpa os dados locais do jogador, NÃO limpa o Firebase
+          await setPlayer(null);
+          navigation.replace('Register');
+        } catch (err) {
+          console.error('Erro ao sair:', err);
+        }
+      }} activeOpacity={0.85}>
+        <Text style={styles.exitText}>SAIR</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -235,40 +227,19 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 28,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  exitBtn: {
+    backgroundColor: '#e53935',
+    borderRadius: 25,
+    paddingVertical: 16,
     alignItems: 'center',
     marginTop: 5,
     marginBottom: 5,
-    gap: 12,
-  },
-  playAgainBtn: {
-    flex: 2,
-    backgroundColor: '#4CAF50',
-    borderRadius: 25,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  playAgainText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 1,
-  },
-  exitBtn: {
-    flex: 1,
-    backgroundColor: '#e53935',
-    borderRadius: 25,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginLeft: 8,
+    width: '100%',
   },
   exitText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 18,
     letterSpacing: 1,
   },
   winnerText: {

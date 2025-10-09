@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BackHandler } from 'react-native';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { useGame } from '../context/GameContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -38,8 +38,13 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>🎯 QrMaster</Text>
-        <Text style={styles.subtitle}>Caça ao Tesouro QR</Text>
+        <Image 
+          source={require('../../assets/splash-icon.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        {/*<Text style={styles.title}>QrcodeMaster</Text>*/}
+        <Text style={styles.subtitle}>Caça ao Tesouro com Tecnologia</Text>
         <Text style={styles.description}>
           Escaneie QR codes pela feira e ganhe pontos para sua equipe!
         </Text>
@@ -75,10 +80,10 @@ export default function RegisterScreen({ navigation }: Props) {
                 activeOpacity={0.8}
               >
                 <Text style={[
-                  styles.teamButtonText,
+                  styles.teamButtonLabel,
                   team === t && styles.teamButtonTextSelected
                 ]}>
-                  {t === 'Azul' ? '🔵' : '🔴'} Equipe {t}
+                  Equipe {t}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -119,12 +124,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 10,
   },
   header: {
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    marginTop: 30,
+  },
+  logo: {
+    width: 200,
+    height: 200,
   },
   title: {
     fontSize: 32,
@@ -151,7 +159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inputContainer: {
-    marginBottom: 30,
+    marginBottom: 10,
   },
   label: {
     fontSize: 18,
@@ -174,18 +182,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fff8',
   },
   teamContainer: {
-    marginBottom: 40,
+    marginBottom: 30,
   },
   teams: {
-    gap: 16,
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
   },
   teamButton: {
-    height: 64,
-    borderRadius: 12,
+    flex: 1,
+    height: 70,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
     backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   teamBlue: {
     borderColor: '#3498db',
@@ -194,7 +210,10 @@ const styles = StyleSheet.create({
     borderColor: '#e74c3c',
   },
   teamButtonSelected: {
-    transform: [{ scale: 1.02 }],
+    transform: [{ scale: 1.05 }],
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
   teamBlueSelected: {
     backgroundColor: '#3498db',
@@ -204,10 +223,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#e74c3c',
     borderColor: '#c0392b',
   },
-  teamButtonText: {
-    fontSize: 20,
-    fontWeight: '600',
+  teamButtonLabel: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#2c3e50',
+    textAlign: 'center',
   },
   teamButtonTextSelected: {
     color: '#fff',

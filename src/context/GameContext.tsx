@@ -31,8 +31,10 @@ export type GameState = {
     red: { players: string[]; score: number };
   };
   scannedQRCodes: string[];
-  clearData: () => void;
+  clearData: () => void; // APENAS para painel administrativo - reseta TUDO
+  clearLocalData: () => void; // Para jogadores - limpa apenas dados locais
   totalScore: number;
+  isQRCodeScannedByTeam: (qrCodeId: string, team: Team) => boolean;
 };
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -62,7 +64,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         const data = docSnap.data();
         // Atualiza contexto local com dados do Firestore
         if (data.player) setPlayerState(data.player);
-        if (data.results) setResultsState(data.results);
+        if (data.results) {
+          setResultsState(data.results);
+          // Atualiza a lista de QR codes escaneados baseado nos results
+          const scannedIds = data.results.map((result: QRResult) => result.id);
+          setScannedQRCodes(scannedIds);
+        }
         if (data.status) setStatus(data.status);
         if (typeof data.timeRemaining === 'number') setTimeRemaining(data.timeRemaining);
         if (data.teams) {
@@ -139,27 +146,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       setResultsState(newResults);
       // Salva no Firestore
       const gameDocRef = doc(db, 'game', 'current');
-      // Extrai os ids dos QR Codes escaneados
-      const scannedIds = newResults.map(result => result.id);
+      
+      // Calcular pontuação de cada equipe baseado nos results
+      const blueResults = newResults.filter(result => result.team === 'blue');
+      const redResults = newResults.filter(result => result.team === 'red');
+      const blueScore = blueResults.reduce((sum, result) => sum + result.points, 0);
+      const redScore = redResults.reduce((sum, result) => sum + result.points, 0);
 
-      // Calcular pontuação da equipe do jogador
-  const teamKey: 'blue' | 'red' = player?.team === 'Azul' ? 'blue' : 'red';
-      // Filtra só os QR Codes do jogador atual (se necessário)
-      const teamResults = newResults; // Se quiser filtrar por jogador, ajuste aqui
-      const teamScore = teamResults.reduce((sum, result) => sum + result.points, 0);
-
-      // Atualiza o score da equipe no Firestore
+      // Atualiza o score de ambas as equipes no Firestore
       await setDoc(gameDocRef, {
         results: newResults,
-        scannedQRCodes: scannedIds,
         teams: {
-          [teamKey]: {
+          blue: {
             // Mantém os jogadores e atualiza o score
-            players: teams[teamKey]?.players || [],
-            score: teamScore
+            players: teams.blue?.players || [],
+            score: blueScore
           },
-          // Mantém a outra equipe sem alteração
-          [teamKey === 'blue' ? 'red' : 'blue']: teams[teamKey === 'blue' ? 'red' : 'blue']
+          red: {
+            // Mantém os jogadores e atualiza o score
+            players: teams.red?.players || [],
+            score: redScore
+          }
         }
       }, { merge: true });
 
@@ -180,6 +187,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   const clearData = async () => {
     try {
+      // ATENÇÃO: Esta função deve ser usada APENAS pelo painel administrativo
+      // Para remover jogadores individuais, use setPlayer(null) sem chamar clearData()
       await Promise.all([
         AsyncStorage.removeItem(STORAGE_KEYS.PLAYER),
         AsyncStorage.removeItem(STORAGE_KEYS.RESULTS),
@@ -187,20 +196,45 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       ]);
       setPlayerState(null);
       setResultsState([]);
-  setStatus('waiting');
-      // Limpa no Firestore
+      setStatus('waiting');
+      // Limpa TODOS os dados do jogo no Firestore (usar apenas no painel admin)
       const gameDocRef = doc(db, 'game', 'current');
       await setDoc(gameDocRef, {
         player: null,
         results: [],
-        gameStarted: false
+        gameStarted: false,
+        status: 'waiting',
+        teams: {
+          blue: { players: [], score: 0 },
+          red: { players: [], score: 0 }
+        }
       }, { merge: true });
     } catch (error) {
       console.error('Erro ao limpar dados:', error);
     }
   };
 
+  const clearLocalData = async () => {
+    try {
+      // Limpa APENAS os dados locais do AsyncStorage, não mexe no Firebase
+      await Promise.all([
+        AsyncStorage.removeItem(STORAGE_KEYS.PLAYER),
+        AsyncStorage.removeItem(STORAGE_KEYS.RESULTS),
+      ]);
+      setPlayerState(null);
+      setResultsState([]);
+    } catch (error) {
+      console.error('Erro ao limpar dados locais:', error);
+    }
+  };
+
   const totalScore = results.reduce((sum, result) => sum + result.points, 0);
+
+  // Função para verificar se um QR code já foi escaneado por uma equipe específica
+  const isQRCodeScannedByTeam = (qrCodeId: string, team: Team): boolean => {
+    const teamName = team === 'Azul' ? 'blue' : 'red';
+    return results.some(result => result.id === qrCodeId && result.team === teamName);
+  };
 
   return (
     <GameContext.Provider
@@ -214,7 +248,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         teams,
         scannedQRCodes,
         clearData,
-        totalScore
+        clearLocalData,
+        totalScore,
+        isQRCodeScannedByTeam
       }}
     >
       {children}
