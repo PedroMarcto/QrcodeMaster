@@ -6,6 +6,8 @@ import { useGame } from '../context/GameContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { useNavigation } from '@react-navigation/native';
+import { isTablet, scale, spacing } from '../utils/responsive';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const colorPoints = {
   verde: 1,
@@ -105,68 +107,126 @@ export default function GameScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.timerBox}>
-          <Text style={styles.timerLabel}>Tempo Restante:</Text>
-          <Text style={styles.timerValue}>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>
-        </View>
-        <Text style={styles.qrCount}>QR Codes Escaneados: {results.length}</Text>
-        <View style={styles.playerInfo}>
-          <Text style={styles.playerName}>{player?.name}</Text>
-          <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }]}>Equipe {player?.team}</Text>
-        </View>
-        <View style={styles.scoreInfo}>
-          <Text style={styles.scoreLabel}>Pontuação Da Equipe:</Text>
-          <Text style={styles.score}>{teamScore}</Text>
-        </View>
-      </View>
+      {isTablet() ? (
+        // Layout para Tablet
+        <View style={styles.tabletLayout}>
+          {/* Coluna Esquerda - Informações */}
+          <View style={styles.leftColumn}>
+            {/* Timer no topo */}
+            <View style={styles.timerBox}>
+              <Text style={styles.timerLabel}>Tempo:</Text>
+              <Text style={styles.timerValue}>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>
+            </View>
 
-      <View style={styles.scannerBox}>
-        <CameraView
-          ref={ref => setCameraRef(ref)}
-          style={StyleSheet.absoluteFillObject}
-          facing="back"
-          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-          onBarcodeScanned={scanned || status === 'finished' ? undefined : handleBarCodeScanned}
-        />
-        <View style={styles.overlay}>
-          <View style={styles.scanFrame} />
-          <Text style={styles.scanInstruction}>
-            {status === 'finished' ? 'A partida foi encerrada!' : scanned ? 'QR Code detectado!' : 'Posicione o QR Code dentro do quadro'}
-          </Text>
-        </View>
-      </View>
+            {/* Informações do Jogador */}
+            <View style={styles.playerInfoCard}>
+              <Text style={styles.playerName}>{player?.name}</Text>
+              <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }]}>
+                Equipe {player?.team}
+              </Text>
+            </View>
 
-      <View style={{
-  position: 'absolute',
-  bottom: 32,
-  left: 0,
-  right: 0,
-  backgroundColor: '#fff',
-  borderRadius: 16,
-  padding: 20,
-  marginHorizontal: 16,
-  elevation: 4,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.15,
-  shadowRadius: 8,
-  alignSelf: 'center',
-}}>
-  <Text style={{ fontWeight: 'bold', marginBottom: 12, fontSize: 18 }}>Sistema de Pontos:</Text>
-  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'green', marginRight: 10 }} />
-    <Text style={{ fontSize: 16 }}>Verde: 1 ponto</Text>
-  </View>
-  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'orange', marginRight: 10 }} />
-    <Text style={{ fontSize: 16 }}>Laranja: 3 pontos</Text>
-  </View>
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'red', marginRight: 10 }} />
-    <Text style={{ fontSize: 16 }}>Vermelho: 5 pontos</Text>
-  </View>
-</View>
+            {/* Pontuação da Equipe */}
+            <View style={styles.scoreCard}>
+              <Text style={styles.scoreLabel}>Pontuação</Text>
+              <Text style={styles.score}>{teamScore}</Text>
+            </View>
+
+            {/* QR Codes Escaneados */}
+            <View style={styles.qrCountCard}>
+              <Text style={styles.qrCountLabel}>QR Codes</Text>
+              <Text style={styles.qrCountValue}>{results.length}</Text>
+            </View>
+
+            {/* Sistema de Pontos */}
+            <View style={styles.pointsCard}>
+              <Text style={styles.pointsTitle}>Sistema de Pontos:</Text>
+              <View style={styles.pointItem}>
+                <View style={[styles.colorDot, { backgroundColor: 'green' }]} />
+                <Text style={styles.pointText}>Verde: 1 ponto</Text>
+              </View>
+              <View style={styles.pointItem}>
+                <View style={[styles.colorDot, { backgroundColor: 'orange' }]} />
+                <Text style={styles.pointText}>Laranja: 3 pontos</Text>
+              </View>
+              <View style={styles.pointItem}>
+                <View style={[styles.colorDot, { backgroundColor: 'red' }]} />
+                <Text style={styles.pointText}>Vermelho: 5 pontos</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Coluna Direita - Scanner */}
+          <View style={styles.rightColumn}>
+            <View style={styles.scannerBox}>
+              <CameraView
+                ref={ref => setCameraRef(ref)}
+                style={StyleSheet.absoluteFillObject}
+                facing="back"
+                barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                onBarcodeScanned={scanned || status === 'finished' ? undefined : handleBarCodeScanned}
+              />
+              <View style={styles.overlay}>
+                <View style={styles.scanFrame} />
+                <Text style={styles.scanInstruction}>
+                  {status === 'finished' ? 'A partida foi encerrada!' : scanned ? 'QR Code detectado!' : 'Posicione o QR Code dentro do quadro'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      ) : (
+        // Layout para Smartphone
+        <>
+          <View style={styles.header}>
+            <View style={styles.timerBox}>
+              <Text style={styles.timerLabel}>Tempo Restante:</Text>
+              <Text style={styles.timerValue}>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>
+            </View>
+            <Text style={styles.qrCount}>QR Codes Escaneados: {results.length}</Text>
+            <View style={styles.playerInfo}>
+              <Text style={styles.playerName}>{player?.name}</Text>
+              <Text style={[styles.teamName, { color: player?.team === 'Azul' ? '#2196f3' : '#e53935' }]}>Equipe {player?.team}</Text>
+            </View>
+            <View style={styles.scoreInfo}>
+              <Text style={styles.scoreLabel}>Pontuação Da Equipe:</Text>
+              <Text style={styles.score}>{teamScore}</Text>
+            </View>
+          </View>
+
+          <View style={styles.scannerBox}>
+            <CameraView
+              ref={ref => setCameraRef(ref)}
+              style={StyleSheet.absoluteFillObject}
+              facing="back"
+              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+              onBarcodeScanned={scanned || status === 'finished' ? undefined : handleBarCodeScanned}
+            />
+            <View style={styles.overlay}>
+              <View style={styles.scanFrame} />
+              <Text style={styles.scanInstruction}>
+                {status === 'finished' ? 'A partida foi encerrada!' : scanned ? 'QR Code detectado!' : 'Posicione o QR Code dentro do quadro'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.pointsInfoBottom}>
+            <Text style={{ fontWeight: 'bold', marginBottom: 12, fontSize: 18 }}>Sistema de Pontos:</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'green', marginRight: 10 }} />
+              <Text style={{ fontSize: 16 }}>Verde: 1 ponto</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'orange', marginRight: 10 }} />
+              <Text style={{ fontSize: 16 }}>Laranja: 3 pontos</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'red', marginRight: 10 }} />
+              <Text style={{ fontSize: 16 }}>Vermelho: 5 pontos</Text>
+            </View>
+          </View>
+        </>
+      )}
 
       <View style={styles.buttonContainer}>
         {scanned && (
@@ -180,17 +240,17 @@ export default function GameScreen({ navigation }: Props) {
             <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 32, alignItems: 'center', width: 300, elevation: 6 }}>
                 {/* Ícone de relógio animado */}
                 <View style={{ marginBottom: 10 }}>
-                  <Text style={{ fontSize: 44, textAlign: 'center' }}>⏰</Text>
+                  <Text style={{ fontSize: 44, textAlign: 'center' }}><MaterialCommunityIcons name="alert-circle" size={45} color="#e53935" /></Text>
                 </View>
-                <Text style={{ fontSize: 23, fontWeight: 'bold', color: '#d32f2f', marginBottom: 16, textAlign: 'center' }}>
-                  PARTIDA ENCERRADA
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#d32f2f', marginBottom: 16, textAlign: 'center' }}>
+                  PARTIDA ENCERRADA!
                 </Text>
                 <TouchableOpacity
                   style={{ backgroundColor: '#43a047', borderRadius: 8, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8, elevation: 2 }}
                   onPress={() => navigation.navigate('Results')}
                   activeOpacity={0.85}
                 >
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, letterSpacing: 1 }}>VER RESUMO</Text>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, letterSpacing: 1 }}>Exibir Resultados</Text>
                 </TouchableOpacity>
               </View>
         </View>
@@ -200,17 +260,129 @@ export default function GameScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: isTablet() ? spacing(16) : spacing(16),
+    paddingTop: isTablet() ? spacing(16) : spacing(20),
+  },
+  // Layout para Tablet
+  tabletLayout: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing(16),
+  },
+  leftColumn: {
+    flex: 0.85,
+    justifyContent: 'flex-start',
+    gap: spacing(6),
+  },
+  rightColumn: {
+    flex: 1.15,
+    justifyContent: 'center',
+  },
+  playerInfoCard: {
+    backgroundColor: '#fff',
+    borderRadius: spacing(10),
+    padding: spacing(10),
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  scoreCard: {
+    backgroundColor: '#fff',
+    borderRadius: spacing(10),
+    padding: spacing(10),
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  qrCountCard: {
+    backgroundColor: '#fff',
+    borderRadius: spacing(10),
+    padding: spacing(10),
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  qrCountLabel: {
+    fontSize: scale(13),
+    color: '#666',
+    marginBottom: spacing(2),
+  },
+  qrCountValue: {
+    fontSize: scale(20),
+    fontWeight: 'bold',
+    color: '#2196f3',
+  },
+  pointsCard: {
+    backgroundColor: '#fff',
+    borderRadius: spacing(10),
+    padding: spacing(10),
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  pointsTitle: {
+    fontSize: scale(13),
+    fontWeight: 'bold',
+    marginBottom: spacing(6),
+    color: '#333',
+  },
+  pointItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing(4),
+  },
+  colorDot: {
+    width: spacing(12),
+    height: spacing(12),
+    borderRadius: spacing(6),
+    marginRight: spacing(8),
+  },
+  pointText: {
+    fontSize: scale(12),
+    color: '#666',
+  },
+  // Layout para Smartphone
+  pointsInfoBottom: {
+    position: 'absolute',
+    bottom: 32,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    alignSelf: 'center',
+  },
   timerBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fffbe6',
-    borderRadius: 12,
+    borderRadius: spacing(10),
     borderWidth: 2,
     borderColor: '#FFD600',
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    marginBottom: 12,
+    paddingVertical: spacing(isTablet() ? 6 : 10),
+    paddingHorizontal: spacing(isTablet() ? 14 : 18),
+    marginBottom: isTablet() ? 0 : spacing(12),
     alignSelf: 'center',
     elevation: 2,
     shadowColor: '#FFD600',
@@ -219,20 +391,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   timerLabel: {
-    fontSize: 18,
+    fontSize: scale(isTablet() ? 14 : 18),
     fontWeight: 'bold',
     color: '#333',
-    marginRight: 10,
+    marginRight: spacing(8),
   },
   timerValue: {
-    fontSize: 28,
+    fontSize: scale(isTablet() ? 20 : 28),
     fontWeight: 'bold',
     color: '#FFD600',
     letterSpacing: 2,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
+    borderRadius: spacing(8),
+    paddingHorizontal: spacing(8),
+    paddingVertical: spacing(2),
     borderWidth: 1,
     borderColor: '#FFD600',
   },
@@ -241,12 +413,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-    paddingTop: 20, // espaçamento extra no topo
   },
   header: {
     alignItems: 'center',
@@ -263,12 +429,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   playerName: {
-    fontSize: 18,
+    fontSize: scale(isTablet() ? 15 : 18),
     fontWeight: '600',
     color: '#333',
   },
   teamName: {
-    fontSize: 16,
+    fontSize: scale(isTablet() ? 13 : 16),
     fontWeight: '500',
   },
   scoreInfo: {
@@ -285,21 +451,21 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   scoreLabel: {
-    fontSize: 16,
+    fontSize: scale(isTablet() ? 12 : 16),
     color: '#666',
-    marginRight: 8,
+    marginRight: spacing(8),
   },
   score: {
-    fontSize: 20,
+    fontSize: scale(isTablet() ? 20 : 20),
     fontWeight: 'bold',
     color: '#4CAF50',
   },
   scannerBox: {
     width: '100%',
-    height: 360,
+    height: isTablet() ? '100%' : 360,
     overflow: 'hidden',
-    borderRadius: 16,
-    marginBottom: 16,
+    borderRadius: spacing(16),
+    marginBottom: isTablet() ? 0 : spacing(16),
     position: 'relative',
   },
   overlay: {
@@ -308,23 +474,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanFrame: {
-    width: 200,
-    height: 200,
+    width: isTablet() ? spacing(220) : spacing(200),
+    height: isTablet() ? spacing(220) : spacing(200),
     borderWidth: 3,
     borderColor: '#4CAF50',
-    borderRadius: 12,
+    borderRadius: spacing(12),
     backgroundColor: 'transparent',
   },
   scanInstruction: {
     position: 'absolute',
-    bottom: 20,
+    bottom: spacing(20),
     color: '#fff',
-    fontSize: 16,
+    fontSize: scale(16),
     textAlign: 'center',
     backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing(16),
+    paddingVertical: spacing(8),
+    borderRadius: spacing(8),
   },
   pointsInfo: {
     backgroundColor: '#fff',
@@ -336,12 +502,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },
-  pointsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
   },
   pointsRow: {
     flexDirection: 'column',

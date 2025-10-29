@@ -1,10 +1,11 @@
 import React from 'react';
-import { BackHandler } from 'react-native';
+import { BackHandler, Dimensions } from 'react-native';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { useGame } from '../context/GameContext';
+import { isTablet, scale, spacing, imageSize, getMaxWidth } from '../utils/responsive';
 
 const WaitingRoomScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -62,44 +63,97 @@ const WaitingRoomScreen = () => {
       <TouchableOpacity style={styles.leaveButtonTop} onPress={handleLeave}>
         <Text style={styles.leaveButtonText}>Sair</Text>
       </TouchableOpacity>
-      <View style={styles.contentContainer}>
-        <Image 
-          source={require('../../assets/splash-icon.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Sala de Espera</Text>
-        <Text style={styles.subtitle}>Bem-vindo, {player?.name || 'Jogador'}!</Text>
-        {teams && (
-          <View style={styles.teamsRow}>
-            {(['blue', 'red'] as const).map((teamName) => {
-              const teamData = teams[teamName as 'blue' | 'red'];
-              const teamColor = teamName === 'blue' ? '#2563eb' : '#dc2626';
-              const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
-              return (
-                <View key={teamName} style={styles.teamColumn}>
-                  <Text style={[styles.teamTitle, { color: teamColor }]}> 
-                    {teamLabel}
-                  </Text>
-                  <View style={styles.playersBox}>
-                    {Array.isArray(teamData?.players) && teamData.players.length > 0 ? (
-                      teamData.players.map((playerName: string, idx: number) => (
-                        <View key={idx} style={styles.playerRow}>
-                          <View style={[styles.playerDot, { backgroundColor: teamColor }]} />
-                          <Text style={styles.playerName}>{playerName}</Text>
+      
+      <View style={styles.contentWrapper}>
+        {isTablet() ? (
+          // Layout para Tablet (2 colunas)
+          <View style={styles.tabletLayout}>
+            <View style={styles.leftColumn}>
+              <Image 
+                source={require('../../assets/splash-icon.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <Text style={styles.title}>Sala de Espera</Text>
+              <Text style={styles.subtitle}>Bem-vindo, {player?.name || 'Jogador'}!</Text>
+              <Text style={styles.status}>Aguardando início do jogo...</Text>
+            </View>
+
+            <View style={styles.rightColumn}>
+              {teams && (
+                <View style={styles.teamsRow}>
+                  {(['blue', 'red'] as const).map((teamName) => {
+                    const teamData = teams[teamName as 'blue' | 'red'];
+                    const teamColor = teamName === 'blue' ? '#2563eb' : '#dc2626';
+                    const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
+                    return (
+                      <View key={teamName} style={styles.teamColumn}>
+                        <Text style={[styles.teamTitle, { color: teamColor }]}> 
+                          {teamLabel}
+                        </Text>
+                        <View style={styles.playersBox}>
+                          {Array.isArray(teamData?.players) && teamData.players.length > 0 ? (
+                            teamData.players.map((playerName: string, idx: number) => (
+                              <View key={idx} style={styles.playerRow}>
+                                <View style={[styles.playerDot, { backgroundColor: teamColor }]} />
+                                <Text style={styles.playerName}>{playerName}</Text>
+                              </View>
+                            ))
+                          ) : (
+                            <Text style={styles.noPlayer}>Nenhum jogador.</Text>
+                          )}
                         </View>
-                      ))
-                    ) : (
-                      <Text style={styles.noPlayer}>Nenhum jogador.</Text>
-                    )}
-                  </View>
+                      </View>
+                    );
+                  })}
                 </View>
-              );
-            })}
+              )}
+            </View>
+          </View>
+        ) : (
+          // Layout para Smartphone (1 coluna)
+          <View style={styles.contentContainer}>
+            <Image 
+              source={require('../../assets/splash-icon.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>Sala de Espera</Text>
+            <Text style={styles.subtitle}>Bem-vindo, {player?.name || 'Jogador'}!</Text>
+            {teams && (
+              <View style={styles.teamsRow}>
+                {(['blue', 'red'] as const).map((teamName) => {
+                  const teamData = teams[teamName as 'blue' | 'red'];
+                  const teamColor = teamName === 'blue' ? '#2563eb' : '#dc2626';
+                  const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
+                  return (
+                    <View key={teamName} style={styles.teamColumn}>
+                      <Text style={[styles.teamTitle, { color: teamColor }]}> 
+                        {teamLabel}
+                      </Text>
+                      <View style={styles.playersBox}>
+                        {Array.isArray(teamData?.players) && teamData.players.length > 0 ? (
+                          teamData.players.map((playerName: string, idx: number) => (
+                            <View key={idx} style={styles.playerRow}>
+                              <View style={[styles.playerDot, { backgroundColor: teamColor }]} />
+                              <Text style={styles.playerName}>{playerName}</Text>
+                            </View>
+                          ))
+                        ) : (
+                          <Text style={styles.noPlayer}>Nenhum jogador.</Text>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+            <Text style={styles.status}>Aguardando início do jogo...</Text>
           </View>
         )}
-        <Text style={styles.status}>Aguardando início do jogo...</Text>
-      </View>      <View style={styles.footer}>
+      </View>
+
+      <View style={styles.footer}>
         <Text style={styles.footerTitle}>QrcodeMaster Beta</Text>
         <Text style={styles.footerSubtitle}>Desenvolvido para Fatech 2025</Text>
         <Text style={styles.footerAuthor}>
@@ -115,82 +169,115 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    marginVertical: 2,
-    width: '90%',
-    alignSelf: 'center',
+    marginVertical: spacing(2),
+    width: '100%',
+    paddingVertical: spacing(1),
   },
   playerDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginRight: 8,
+    width: spacing(10),
+    height: spacing(10),
+    borderRadius: spacing(5),
+    marginRight: spacing(8),
     borderWidth: 2,
     borderColor: '#fff',
     shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
   },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
   },
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: isTablet() ? 900 : getMaxWidth(),
+    alignSelf: 'center',
+    paddingHorizontal: spacing(20),
+    paddingTop: isTablet() ? spacing(10) : spacing(16),
+    paddingBottom: spacing(120),
+  },
+  // Layout específico para Tablet
+  tabletLayout: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  leftColumn: {
+    flex: 0.9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingRight: spacing(15),
+  },
+  rightColumn: {
+    flex: 1.1,
+    justifyContent: 'center',
+    paddingLeft: spacing(15),
+  },
+  // Layout para Smartphone
   contentContainer: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginTop: 80,
+    marginTop: spacing(80),
   },
   logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 16,
+    width: isTablet() ? imageSize(150) : imageSize(200),
+    height: isTablet() ? imageSize(150) : imageSize(200),
+    marginBottom: isTablet() ? spacing(8) : spacing(16),
   },
   title: {
-    fontSize: 28,
+    fontSize: isTablet() ? scale(22) : scale(28),
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: isTablet() ? spacing(6) : spacing(16),
     textAlign: 'center',
+    color: '#2c3e50',
   },
   subtitle: {
-    fontSize: 20,
-    marginBottom: 24,
+    fontSize: isTablet() ? scale(16) : scale(20),
+    marginBottom: isTablet() ? spacing(8) : spacing(24),
     textAlign: 'center',
+    color: '#34495e',
   },
   teamsRow: {
-    flexDirection: 'row',
+    flexDirection: isTablet() ? 'column' : 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginVertical: 16,
-    gap: 16,
+    marginVertical: spacing(16),
+    marginBottom: isTablet() ? spacing(40) : spacing(16),
   },
   teamColumn: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginHorizontal: 4,
-    elevation: 2,
+    borderRadius: spacing(10),
+    padding: spacing(12),
+    marginHorizontal: isTablet() ? 0 : spacing(8),
+    marginVertical: isTablet() ? spacing(4) : 0,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    minHeight: isTablet() ? spacing(90) : spacing(100),
+    maxHeight: isTablet() ? spacing(200) : spacing(150),
   },
   teamTitle: {
     fontWeight: 'bold',
-    fontSize: 18,
-    marginBottom: 8,
+    fontSize: isTablet() ? scale(16) : scale(18),
+    marginBottom: spacing(8),
     color: '#3b82f6',
     textAlign: 'center',
+    width: '100%',
   },
   playersBox: {
     width: '100%',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing(4),
   },
   playerName: {
-    fontSize: 16,
+    fontSize: isTablet() ? scale(14) : scale(16),
     color: '#222',
     textAlign: 'left',
     paddingHorizontal: 0,
@@ -201,28 +288,30 @@ const styles = StyleSheet.create({
   noPlayer: {
     fontStyle: 'italic',
     color: '#888',
-    marginTop: 4,
+    marginTop: spacing(4),
+    fontSize: scale(14),
   },
   status: {
-    fontSize: 16,
-    marginTop: 32,
+    fontSize: isTablet() ? scale(16) : scale(16),
+    marginTop: isTablet() ? spacing(20) : spacing(32),
     color: '#888',
     textAlign: 'center',
+    fontWeight: '600',
   },
   leaveButtonTop: {
     position: 'absolute',
-    top: 32,
-    right: 24,
+    top: spacing(32),
+    right: spacing(24),
     backgroundColor: '#dc2626',
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 20,
+    paddingVertical: spacing(10),
+    paddingHorizontal: spacing(20),
+    borderRadius: spacing(20),
     zIndex: 10,
   },
   leaveButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: scale(16),
     textAlign: 'center',
   },
   footer: {
@@ -231,11 +320,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#fff',
-    paddingVertical: 16,
+    paddingVertical: spacing(16),
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
     alignItems: 'center',
-    width: 411,
+    width: Dimensions.get('window').width,
     zIndex: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
@@ -244,21 +333,21 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   footerTitle: {
-    fontSize: 14,
+    fontSize: scale(14),
     color: '#27ae60',
     textAlign: 'center',
     fontWeight: 'bold',
     letterSpacing: 0.5,
-    marginBottom: 2,
+    marginBottom: spacing(2),
   },
   footerSubtitle: {
-    fontSize: 12,
+    fontSize: scale(12),
     color: '#7f8c8d',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: spacing(4),
   },
   footerAuthor: {
-    fontSize: 11,
+    fontSize: scale(11),
     color: '#95a5a6',
     textAlign: 'center',
     fontWeight: '500',
