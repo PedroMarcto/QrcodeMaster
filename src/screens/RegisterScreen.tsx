@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing(12),
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
+    borderWidth: 1,
     backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

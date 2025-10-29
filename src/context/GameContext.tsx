@@ -45,6 +45,8 @@ const STORAGE_KEYS = {
   GAME_STARTED: '@game_started',
 };
 
+import { navigationRef } from '../navigation/navigationRef';
+
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [player, setPlayerState] = useState<Player | null>(null);
   const [results, setResultsState] = useState<QRResult[]>([]);
@@ -53,10 +55,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [teams, setTeams] = useState<{ blue: { players: string[]; score: number }; red: { players: string[]; score: number } }>({ blue: { players: [], score: 0 }, red: { players: [], score: 0 } });
   const [scannedQRCodes, setScannedQRCodes] = useState<string[]>([]);
 
-
-
-
   // Carregar dados do Firestore e escutar atualizações em tempo real
+  // Removido useNavigation, usaremos navigationRef
+
   useEffect(() => {
     const gameDocRef = doc(db, 'game', 'current');
     const unsubscribe = onSnapshot(gameDocRef, (docSnap) => {
@@ -89,6 +90,40 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     // Carrega dados locais para fallback/offline
     loadData();
     return () => unsubscribe();
+  }, []);
+
+  // Restaurar tela de onde parou ao abrir o app
+  useEffect(() => {
+    const restoreScreen = async () => {
+      try {
+        const playerData = await AsyncStorage.getItem(STORAGE_KEYS.PLAYER);
+        if (playerData) {
+          setPlayerState(JSON.parse(playerData));
+          // Aguarda status do contexto ser carregado do Firebase
+          const unsubscribe = onSnapshot(doc(db, 'game', 'current'), (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (navigationRef.isReady()) {
+                if (data.status === 'finished') {
+                  navigationRef.navigate('Results');
+                } else {
+                  navigationRef.navigate('WaitingRoom');
+                }
+              }
+            }
+          });
+          // Remove listener após navegação
+          setTimeout(() => unsubscribe(), 2000);
+        } else {
+          if (navigationRef.isReady()) {
+            navigationRef.navigate('Register');
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao restaurar tela:', error);
+      }
+    };
+    restoreScreen();
   }, []);
 
   const loadData = async () => {
