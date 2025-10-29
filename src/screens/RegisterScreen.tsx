@@ -19,7 +19,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [team, setTeam] = useState<typeof teams[number] | null>(null);
   const { setPlayer } = useGame();
 
-    React.useEffect(() => {
+  React.useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true);
     return () => backHandler.remove();
   }, []);
@@ -39,163 +39,170 @@ export default function RegisterScreen({ navigation }: Props) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.container}>
         <View style={styles.contentWrapper}>
           {isTablet() ? (
-          // Layout para Tablet (2 colunas)
-          <View style={styles.tabletLayout}>
-            <View style={styles.leftColumn}>
-              <Image 
-                source={require('../../assets/splash-icon.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={styles.subtitle}>Caça ao Tesouro com Tecnologia</Text>
-              <Text style={styles.description}>
-                Escaneie QR codes pela feira e ganhe pontos para sua equipe!
-              </Text>
-            </View>
-
-            <View style={styles.rightColumn}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Seu Nome</Text>
-                <TextInput
-                  style={[styles.input, name.trim() ? styles.inputFilled : null]}
-                  placeholder="Digite seu nome aqui"
-                  placeholderTextColor="#999"
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                  maxLength={20}
+            // Layout para Tablet (2 colunas)
+            <View style={styles.tabletLayout}>
+              <View style={styles.leftColumn}>
+                <Image 
+                  source={require('../../assets/splash-icon.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
                 />
-              </View>
-
-              <View style={styles.teamContainer}>
-                <Text style={styles.label}>Escolha sua Equipe</Text>
-                <View style={styles.teams}>
-                  {teams.map((t) => (
-                    <TouchableOpacity
-                      key={t}
-                      style={[
-                        styles.teamButton,
-                        team === t && styles.teamButtonSelected,
-                        t === 'Azul' ? styles.teamBlue : styles.teamRed,
-                        team === t && (t === 'Azul' ? styles.teamBlueSelected : styles.teamRedSelected)
-                      ]}
-                      onPress={() => setTeam(t)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[
-                        styles.teamButtonLabel,
-                        team === t && styles.teamButtonTextSelected
-                      ]}>
-                        Equipe {t}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.enterButton,
-                  (!name.trim() || !team) && styles.enterButtonDisabled
-                ]}
-                onPress={handleRegister}
-                disabled={!name.trim() || !team}
-                activeOpacity={0.8}
-              >
-                <Text style={[
-                  styles.enterButtonText,
-                  (!name.trim() || !team) && styles.enterButtonTextDisabled
-                ]}>
-                  Jogar
+                <Text style={styles.subtitle}>Caça ao Tesouro com Tecnologia</Text>
+                <Text style={styles.description}>
+                  Escaneie QR codes pela feira e ganhe pontos para sua equipe!
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
-          // Layout para Smartphone (1 coluna)
-          <>
-            <View style={styles.header}>
-              <Image 
-                source={require('../../assets/splash-icon.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={styles.subtitle}>Caça ao Tesouro com Tecnologia</Text>
-              <Text style={styles.description}>
-                Escaneie QR codes pela feira e ganhe pontos para sua equipe!
-              </Text>
-            </View>
+              </View>
 
-            <View style={styles.form}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}><MaterialCommunityIcons name="account" size={20} color="#2c3e50" />Seu Nome</Text>
-                <TextInput
-                  style={[styles.input, name.trim() ? styles.inputFilled : null]}
-                  placeholder="Digite seu nome aqui"
-                  placeholderTextColor="#999"
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                  maxLength={20}
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+              >
+                <View style={styles.rightColumn}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Seu Nome</Text>
+                    <TextInput
+                      style={[styles.input, name.trim() ? styles.inputFilled : null]}
+                      placeholder="Digite seu nome aqui"
+                      placeholderTextColor="#999"
+                      value={name}
+                      onChangeText={setName}
+                      autoCapitalize="words"
+                      maxLength={20}
+                    />
+                  </View>
+
+                  <View style={styles.teamContainer}>
+                    <Text style={styles.label}>Escolha sua Equipe</Text>
+                    <View style={styles.teams}>
+                      {teams.map((t) => (
+                        <TouchableOpacity
+                          key={t}
+                          style={[
+                            styles.teamButton,
+                            team === t && styles.teamButtonSelected,
+                            t === 'Azul' ? styles.teamBlue : styles.teamRed,
+                            team === t && (t === 'Azul' ? styles.teamBlueSelected : styles.teamRedSelected)
+                          ]}
+                          onPress={() => setTeam(t)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[
+                            styles.teamButtonLabel,
+                            team === t && styles.teamButtonTextSelected
+                          ]}>
+                            Equipe {t}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.enterButton,
+                      (!name.trim() || !team) && styles.enterButtonDisabled
+                    ]}
+                    onPress={handleRegister}
+                    disabled={!name.trim() || !team}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[
+                      styles.enterButtonText,
+                      (!name.trim() || !team) && styles.enterButtonTextDisabled
+                    ]}>
+                      Jogar
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            </View>
+          ) : (
+            // Layout para Smartphone (1 coluna)
+            <>
+              <View style={styles.header}>
+                <Image 
+                  source={require('../../assets/splash-icon.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
                 />
-              </View>
-
-              <View style={styles.teamContainer}>
-                <Text style={styles.label}>Escolha sua Equipe</Text>
-                <View style={styles.teams}>
-                  {teams.map((t) => (
-                    <TouchableOpacity
-                      key={t}
-                      style={[
-                        styles.teamButton,
-                        team === t && styles.teamButtonSelected,
-                        t === 'Azul' ? styles.teamBlue : styles.teamRed,
-                        team === t && (t === 'Azul' ? styles.teamBlueSelected : styles.teamRedSelected)
-                      ]}
-                      onPress={() => setTeam(t)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[
-                        styles.teamButtonLabel,
-                        team === t && styles.teamButtonTextSelected
-                      ]}>
-                        <MaterialCommunityIcons
-                          name="flag-variant"
-                          size={38}
-                          color={t === 'Azul' ? (team === t ? '#fff' : '#2196f3') : (team === t ? '#fff' : '#e74c3c')}
-                        />
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.enterButton,
-                  (!name.trim() || !team) && styles.enterButtonDisabled
-                ]}
-                onPress={handleRegister}
-                disabled={!name.trim() || !team}
-                activeOpacity={0.8}
-              >
-                <Text style={[
-                  styles.enterButtonText,
-                  (!name.trim() || !team) && styles.enterButtonTextDisabled
-                ]}>
-                  Jogar
+                <Text style={styles.subtitle}>Caça ao Tesouro com Tecnologia</Text>
+                <Text style={styles.description}>
+                  Escaneie QR codes pela feira e ganhe pontos para sua equipe!
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </View>
+              </View>
+
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+              >
+                <View style={styles.form}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}><MaterialCommunityIcons name="account" size={20} color="#2c3e50" />Seu Nome</Text>
+                    <TextInput
+                      style={[styles.input, name.trim() ? styles.inputFilled : null]}
+                      placeholder="Digite seu nome aqui"
+                      placeholderTextColor="#999"
+                      value={name}
+                      onChangeText={setName}
+                      autoCapitalize="words"
+                      maxLength={20}
+                    />
+                  </View>
+
+                  <View style={styles.teamContainer}>
+                    <Text style={styles.label}>Escolha sua Equipe</Text>
+                    <View style={styles.teams}>
+                      {teams.map((t) => (
+                        <TouchableOpacity
+                          key={t}
+                          style={[
+                            styles.teamButton,
+                            team === t && styles.teamButtonSelected,
+                            t === 'Azul' ? styles.teamBlue : styles.teamRed,
+                            team === t && (t === 'Azul' ? styles.teamBlueSelected : styles.teamRedSelected)
+                          ]}
+                          onPress={() => setTeam(t)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[
+                            styles.teamButtonLabel,
+                            team === t && styles.teamButtonTextSelected
+                          ]}>
+                            <MaterialCommunityIcons
+                              name="flag-variant"
+                              size={38}
+                              color={t === 'Azul' ? (team === t ? '#fff' : '#2196f3') : (team === t ? '#fff' : '#e74c3c')}
+                            />
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.enterButton,
+                      (!name.trim() || !team) && styles.enterButtonDisabled
+                    ]}
+                    onPress={handleRegister}
+                    disabled={!name.trim() || !team}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[
+                      styles.enterButtonText,
+                      (!name.trim() || !team) && styles.enterButtonTextDisabled
+                    ]}>
+                      Jogar
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            </>
+          )}
+        </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerTitle}>QrcodeMaster Beta</Text>
@@ -204,7 +211,7 @@ export default function RegisterScreen({ navigation }: Props) {
             Copyright 2025 Pedro Otávio Rodrigues Marcato
           </Text>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }

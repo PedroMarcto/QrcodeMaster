@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { useGame } from '../context/GameContext';
 import { isTablet, scale, spacing, imageSize, getMaxWidth } from '../utils/responsive';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const WaitingRoomScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -61,6 +62,7 @@ const WaitingRoomScreen = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.leaveButtonTop} onPress={handleLeave}>
+        <MaterialCommunityIcons name="arrow-left" size={20} color="#ffffffff" />
         <Text style={styles.leaveButtonText}>Sair</Text>
       </TouchableOpacity>
       
@@ -88,7 +90,8 @@ const WaitingRoomScreen = () => {
                     const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
                     return (
                       <View key={teamName} style={styles.teamColumn}>
-                        <Text style={[styles.teamTitle, { color: teamColor }]}> 
+                        <Text style={[styles.teamTitle, { color: teamColor, flexDirection: 'row', alignItems: 'center' }]}> 
+                          <MaterialCommunityIcons name="account-group" size={22} color={teamColor} style={{ marginRight: 6 }} />
                           {teamLabel}
                         </Text>
                         <View style={styles.playersBox}>
@@ -128,9 +131,12 @@ const WaitingRoomScreen = () => {
                   const teamLabel = teamName === 'blue' ? 'Azul' : 'Vermelho';
                   return (
                     <View key={teamName} style={styles.teamColumn}>
-                      <Text style={[styles.teamTitle, { color: teamColor }]}> 
-                        {teamLabel}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <MaterialCommunityIcons name="account-group" size={22} color={teamColor} style={{ marginRight: 6 }} />
+                        <Text style={[styles.teamTitle, { color: teamColor }]}>
+                          {teamLabel}
+                        </Text>
+                      </View>
                       <View style={styles.playersBox}>
                         {Array.isArray(teamData?.players) && teamData.players.length > 0 ? (
                           teamData.players.map((playerName: string, idx: number) => (
@@ -148,7 +154,7 @@ const WaitingRoomScreen = () => {
                 })}
               </View>
             )}
-            <Text style={styles.status}>Aguardando início do jogo...</Text>
+            <Text style={styles.status}>Aguardando o início da caçada...</Text>
           </View>
         )}
       </View>
@@ -266,10 +272,7 @@ const styles = StyleSheet.create({
   teamTitle: {
     fontWeight: 'bold',
     fontSize: isTablet() ? scale(16) : scale(18),
-    marginBottom: spacing(8),
     color: '#3b82f6',
-    textAlign: 'center',
-    width: '100%',
   },
   playersBox: {
     width: '100%',
@@ -299,12 +302,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   leaveButtonTop: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
     position: 'absolute',
     top: spacing(32),
     right: spacing(24),
     backgroundColor: '#dc2626',
     paddingVertical: spacing(10),
     paddingHorizontal: spacing(20),
+    paddingLeft: spacing(15),
     borderRadius: spacing(20),
     zIndex: 10,
   },
@@ -312,7 +319,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: scale(16),
-    textAlign: 'center',
+    marginLeft: spacing(8),
   },
   footer: {
     position: 'absolute',

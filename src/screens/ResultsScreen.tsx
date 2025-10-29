@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   blueBanner: {
+    width: '100%',
     backgroundColor: '#2563eb',
     borderRadius: spacing(16),
     padding: spacing(16),
@@ -164,6 +165,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   redBanner: {
+    width: '100%',
     backgroundColor: '#e53935',
     borderRadius: spacing(16),
     padding: spacing(16),
@@ -181,6 +183,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   drawBanner: {
+    width: '100%',
     backgroundColor: '#f59e42',
     borderRadius: spacing(16),
     padding: spacing(16),
